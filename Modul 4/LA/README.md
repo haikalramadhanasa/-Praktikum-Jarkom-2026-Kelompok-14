@@ -108,7 +108,6 @@ Flags: X - disabled, I - invalid, D - dynamic
 *Hasil `ip address print` di MikroTik — IP tiap interface sudah terpasang*
 
 #### Aktifkan NAT Masquerade
-<img width="852" height="483" alt="WhatsApp Image 2026-06-07 at 09 36 22 (1)" src="https://github.com/user-attachments/assets/e1fbe749-8932-41bf-bfae-446ecaa31a80" />
 
 ```
 /ip firewall nat add chain=srcnat out-interface=ether1 action=masquerade
