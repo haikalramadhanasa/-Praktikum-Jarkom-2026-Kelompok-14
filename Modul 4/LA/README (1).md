@@ -25,8 +25,9 @@
 
 Ini adalah gambaran topologi jaringan yang kita pakai di modul ini:
 
-*Topologi di PNETLab — semua node sudah nyala dan terhubung*
-![Topologi Jaringan](<WhatsApp Image 2026-06-07 at 09.36.26 (1)-1-1.jpeg>)
+![Topologi Jaringan](./SS/)
+*Screenshot topologi di PNETLab — semua node sudah nyala dan terhubung*
+<img width="1166" height="686" alt="WhatsApp Image 2026-06-07 at 09 36 26 (1)-1-1" src="https://github.com/user-attachments/assets/8d805d74-d4a2-4ad3-8199-24476492cc59" />
 ---
 
 ## 2. Penjelasan Perangkat
