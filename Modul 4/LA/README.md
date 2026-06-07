@@ -410,33 +410,14 @@ GigabitEthernet0/1    192.168.10.1    YES manual up                    up
 ```
 
 <img width="847" height="718" alt="WhatsApp Image 2026-06-07 at 09 36 34 (1)" src="https://github.com/user-attachments/assets/b380e806-c18a-48e7-8eb9-a8053ecfe3b1" />
+
 *Hasil `show ip interface brief` — kedua interface aktif (up/up)*
-
-Verifikasi routing dengan `show ip route`:
-
-```
-Cisco-Router# show ip route
-Codes: C - connected, S - static, R - RIP, M - mobile, B - BGP
-
-Gateway of last resort is 10.20.20.1 to network 0.0.0.0
-
-      10.0.0.0/30 is subnetted, 1 subnets
-C        10.20.20.0 is directly connected, GigabitEthernet0/0
-      192.168.10.0/24 is directly connected
-C        192.168.10.0 is directly connected, GigabitEthernet0/1
-S*    0.0.0.0/0 [1/0] via 10.20.20.1
-```
-
-![Cisco Show IP Route](./screenshots/cisco/cisco_show_ip_route.png)
-*Hasil `show ip route` — default route ke FortiGate (10.20.20.1) sudah ada*
-
----
 
 ### 5.4 Konfigurasi Client LAN (Tiny Core Linux)
 
 Set IP bisa lewat **Control Panel > Network** di GUI, atau pakai perintah ini di terminal:
 
-```bash
+```
 sudo ifconfig eth0 192.168.10.10 netmask 255.255.255.0
 sudo route add default gw 192.168.10.1
 echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
@@ -465,13 +446,14 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 ```
 
 <img width="1474" height="819" alt="WhatsApp Image 2026-06-07 at 09 36 35" src="https://github.com/user-attachments/assets/2f1ac74c-4270-4eb8-a68e-8fc0500139b9" />
+
 *Hasil `ifconfig` di Client LAN — IP sudah terpasang*
 
 ---
 
 ### 5.5 Konfigurasi Client WAN (Tiny Core Linux)
 
-```bash
+```
 sudo ifconfig eth0 172.16.100.10 netmask 255.255.255.0
 sudo route add default gw 172.16.100.1
 echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
@@ -495,6 +477,7 @@ eth0      Link encap:Ethernet  HWaddr xx:xx:xx:xx:xx:xx
 
 
 <img width="1463" height="807" alt="WhatsApp Image 2026-06-07 at 09 36 35 (1)" src="https://github.com/user-attachments/assets/b9bdeb3e-2c3e-4f08-bc05-5340b6f9e6f1" />
+
 *Hasil `ifconfig` di Client WAN — IP sudah terpasang*
 
 ---
@@ -503,13 +486,13 @@ eth0      Link encap:Ethernet  HWaddr xx:xx:xx:xx:xx:xx
 
 #### Set IP Statis
 
-```bash
+```
 sudo nano /etc/netplan/00-installer-config.yaml
 ```
 
 Isi filenya:
 
-```yaml
+```
 network:
   version: 2
   ethernets:
@@ -523,7 +506,7 @@ network:
         addresses: [8.8.8.8, 8.8.4.4]
 ```
 
-```bash
+```
 sudo netplan apply
 ```
 
@@ -541,11 +524,12 @@ default via 192.168.20.1 dev ens3 proto static
 
 
 <img width="751" height="340" alt="WhatsApp Image 2026-06-07 at 09 36 24 (1)" src="https://github.com/user-attachments/assets/d96ff407-8cb8-4fb1-aff9-7ed881580a18" />
+
 *Hasil `ip a` di Ubuntu Server — IP 192.168.20.10 sudah terpasang*
 
 #### Install dan Jalankan Nginx
 
-```bash
+```
 sudo apt update
 sudo apt install nginx -y
 sudo systemctl enable nginx
@@ -564,17 +548,18 @@ root@ubuntu:~# systemctl status nginx
 
 
 <img width="822" height="507" alt="WhatsApp Image 2026-06-07 at 09 36 27 (1)" src="https://github.com/user-attachments/assets/94a617bb-417f-46eb-95d3-a4d5363c781a" />
+
 *Hasil `systemctl status nginx` — Nginx aktif (active running)*
 
 #### Ganti Halaman Default Nginx
 
-```bash
+```
 sudo nano /var/www/html/index.nginx-debian.html
 ```
 
 Isi file:
 
-```html
+```
 <!DOCTYPE html>
 <html>
 <head>
@@ -601,7 +586,7 @@ root@ubuntu:~# curl http://localhost
     <p>Web Server DMZ - Modul 4 Praktikum Jaringan Komputer</p>
 </body>
 </html>
-
+```
 ## 6. Hasil Pengujian
 
 ### Pengujian 1 — Client LAN ping ke Cisco Router
@@ -613,11 +598,11 @@ PING 192.168.10.1 (192.168.10.1): 56 data bytes
 64 bytes from 192.168.10.1: seq=1 ttl=255 time=0.8 ms
 64 bytes from 192.168.10.1: seq=2 ttl=255 time=0.9 ms
 ```
-
 Berhasil karena Client LAN dan Cisco Router berada di subnet yang sama (192.168.10.0/24).
 
 
 <img width="903" height="566" alt="WhatsApp Image 2026-06-07 at 09 36 29 (1)" src="https://github.com/user-attachments/assets/4fc5f512-7db7-4415-86e6-28bb955d58db" />
+
 *Ping dari Client LAN ke Cisco Router (192.168.10.1) — berhasil*
 
 ---
@@ -636,6 +621,7 @@ Berhasil. Packet dari Client LAN diteruskan Cisco Router ke FortiGate.
 
 
 <img width="903" height="566" alt="WhatsApp Image 2026-06-07 at 09 36 29 (1)" src="https://github.com/user-attachments/assets/3ecc5fd3-67fb-4e24-8258-f8296fb0d771" />
+
 *Ping dari Client LAN ke FortiGate port2 (10.20.20.1) — berhasil*
 
 ---
@@ -653,6 +639,7 @@ PING 192.168.20.10 (192.168.20.10): 56 data bytes
 Berhasil karena ada policy `LAN_to_DMZ` yang mengizinkan traffic dari LAN ke DMZ.
 
 <img width="801" height="523" alt="WhatsApp Image 2026-06-07 at 09 36 29 (2)" src="https://github.com/user-attachments/assets/4fdd9ce7-d42f-4ef6-91f3-9c9333a40729" />
+
 *Ping dari Client LAN ke Ubuntu Server DMZ (192.168.20.10) — berhasil*
 
 ---
@@ -676,6 +663,7 @@ tc@box:~$ wget http://192.168.20.10 -O - 2>/dev/null | head -10
 Halaman web server DMZ berhasil diakses dari Client LAN.
 
 <img width="990" height="723" alt="WhatsApp Image 2026-06-07 at 09 36 30" src="https://github.com/user-attachments/assets/cf015909-e39c-47c5-823a-7f7ce56b069a" />
+
 *Client LAN akses web server DMZ via http://192.168.20.10 — berhasil*
 
 ---
@@ -693,6 +681,7 @@ PING 172.16.100.1 (172.16.100.1): 56 data bytes
 Berhasil karena Client WAN dan MikroTik ether3 berada di subnet yang sama.
 
 <img width="883" height="540" alt="WhatsApp Image 2026-06-07 at 09 36 31" src="https://github.com/user-attachments/assets/67154cba-f1c1-4386-8ee6-58a5f6b4b93b" />
+
 *Ping dari Client WAN ke MikroTik ISP (172.16.100.1) — berhasil*
 
 ---
@@ -710,6 +699,7 @@ PING 10.10.10.2 (10.10.10.2): 56 data bytes
 Berhasil. FortiGate mengizinkan ping di port WAN karena kita set `allowaccess ping` di port1.
 
 <img width="883" height="540" alt="WhatsApp Image 2026-06-07 at 09 36 31" src="https://github.com/user-attachments/assets/ec03a59c-c9f7-4d62-a3d9-ff2d2752b2e8" />
+
 *Ping dari Client WAN ke FortiGate WAN (10.10.10.2) — berhasil*
 
 ---
@@ -733,6 +723,7 @@ tc@box:~$ wget http://10.10.10.2 -O - 2>/dev/null | head -10
 Halaman web server DMZ muncul. Di balik layar, FortiGate yang nerusin request ini ke 192.168.20.10 lewat VIP.
 
 <img width="998" height="714" alt="WhatsApp Image 2026-06-07 at 09 36 30 (1)" src="https://github.com/user-attachments/assets/e94a9bc1-2717-4422-89f2-f95142f3043a" />
+
 *Client WAN akses http://10.10.10.2 — halaman web DMZ muncul (VIP bekerja)*
 
 ---
@@ -750,6 +741,7 @@ Request timeout for icmp_seq 2
 Tidak ada reply sama sekali — FortiGate memblokir karena tidak ada policy yang mengizinkan WAN akses langsung ke LAN. Ini hasil yang diharapkan, artinya firewall bekerja dengan benar.
 
 <<img width="1174" height="646" alt="WhatsApp Image 2026-06-07 at 09 36 36" src="https://github.com/user-attachments/assets/01e35ea9-dc87-4a2d-b867-152817618a06" />
+
 *Ping dari Client WAN ke Client LAN (192.168.10.10) — diblokir firewall ✓*
 
 
@@ -769,6 +761,7 @@ Gagal juga. Client WAN hanya boleh akses DMZ lewat VIP (10.10.10.2), bukan IP as
 
 
 <img width="653" height="175" alt="WhatsApp Image 2026-06-07 at 09 36 29" src="https://github.com/user-attachments/assets/61bcf2fe-38d5-4962-8d94-061fe2e4f2dc" />
+
 *Ping dari Client WAN ke IP asli DMZ (192.168.20.10) — diblokir firewall ✓*
 
 ---
@@ -787,6 +780,7 @@ Berhasil. Route dari DMZ ke LAN sudah ada lewat FortiGate, dan tidak ada policy 
 
 
 <img width="1262" height="232" alt="WhatsApp Image 2026-06-07 at 09 36 31 (1)" src="https://github.com/user-attachments/assets/d3d36997-ca18-4b55-a0c2-d6d396fdd197" />
+
 *Ping dari Ubuntu Server DMZ ke Client LAN (192.168.10.10) — berhasil*
 
 ---
