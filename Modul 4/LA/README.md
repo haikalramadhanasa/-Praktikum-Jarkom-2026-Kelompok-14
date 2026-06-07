@@ -105,6 +105,7 @@ Flags: X - disabled, I - invalid, D - dynamic
 
 
 <img width="840" height="454" alt="ip addres print" src="https://github.com/user-attachments/assets/0d2f8e2c-060a-4921-94f9-869c18ed57d4" />
+
 *Hasil `ip address print` di MikroTik — IP tiap interface sudah terpasang*
 
 #### Aktifkan NAT Masquerade
@@ -124,6 +125,7 @@ Flags: X - disabled, I - invalid, D - dynamic
 ```
 
 <img width="852" height="483" alt="WhatsApp Image 2026-06-07 at 09 36 22 (1)" src="https://github.com/user-attachments/assets/d532511f-90b7-45fa-8939-b4cccdea6a1e" />
+
 *Hasil `ip firewall nat print` — NAT masquerade aktif di ether1*
 
 #### Tambah Route ke LAN dan DMZ
