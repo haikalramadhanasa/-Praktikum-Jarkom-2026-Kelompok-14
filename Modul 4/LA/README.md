@@ -151,6 +151,7 @@ Flags: X - disabled, A - active, D - dynamic, C - connect, S - static, r - rip
 ```
 
 <img width="1092" height="460" alt="WhatsApp Image 2026-06-07 at 09 36 25 (1)" src="https://github.com/user-attachments/assets/35d70ff6-4f3f-45ec-893b-882ae74460e2" />
+
 *Hasil `ip route print` — route ke LAN dan DMZ sudah ada*
 
 ---
@@ -205,6 +206,7 @@ end
 ```
 
 <img width="853" height="728" alt="WhatsApp Image 2026-06-07 at 09 36 32 (1)" src="https://github.com/user-attachments/assets/9aa3d260-c9d4-4224-8b88-37af55bc08ca" />
+
 *Hasil `show system interface` di FortiGate — IP tiap port sudah terpasang*
 
 #### 5.2.2 Set Routing
@@ -241,6 +243,7 @@ C       192.168.20.0/24 is directly connected, port3
 ```
 
 <img width="838" height="333" alt="WhatsApp Image 2026-06-07 at 09 36 33" src="https://github.com/user-attachments/assets/1a468f29-c7de-479f-9248-6aacfac61ce9" />
+
 *Hasil `get router info routing-table all` — semua route sudah terpasang*
 
 
@@ -280,6 +283,7 @@ end
 ```
 
 <img width="875" height="207" alt="WhatsApp Image 2026-06-07 at 09 36 33 (2)" src="https://github.com/user-attachments/assets/5a6a9e0b-2030-4088-bd09-dd69213c5c38" />
+
 *Hasil `show firewall vip` — VIP sudah terkonfigurasi*
 
 #### 5.2.4 Buat Firewall Policy
@@ -369,6 +373,7 @@ end
 
 <img width="846" height="723" alt="WhatsApp Image 2026-06-07 at 09 36 33 (1)" src="https://github.com/user-attachments/assets/ab168c72-64ed-4252-a7b4-df6d712214ba" />
 <img width="845" height="718" alt="WhatsApp Image 2026-06-07 at 09 36 34" src="https://github.com/user-attachments/assets/def7fa27-8bf9-41f3-a4c0-a8d1e88003cd" />
+
 *Hasil `show firewall policy` — semua policy sudah terdaftar*
 
 ---
