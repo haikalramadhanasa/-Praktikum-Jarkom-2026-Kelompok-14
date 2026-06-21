@@ -57,7 +57,12 @@ Teknologi yang digunakan pada percobaan ini meliputi:
 
 ## 2. Topologi Jaringan
 
-> **Bukti 01:** Tambahkan screenshot topologi lengkap PNETLab ke bagian ini.
+Screenshot berikut memperlihatkan bagian Jakarta/HQ pada topologi PNETLab.
+
+![Topologi Jakarta](ss/1/topologi%20Jakarta.png)
+
+*Topologi Jakarta terdiri atas FortiGate, Cisco Router, MikroTik Router,
+Cisco Switch, client VLAN 10 dan VLAN 20, serta Ubuntu Server VLAN 60.*
 
 Topologi terbagi menjadi tiga bagian:
 
@@ -174,7 +179,7 @@ exit
 ### 4.2 Mengatur Access Port
 
 ```cisco
-interface gi0/1
+interface gi0/3
  description CLIENT-VLAN10
  switchport mode access
  switchport access vlan 10
@@ -188,7 +193,7 @@ interface gi0/2
  no shutdown
 exit
 
-interface gi0/3
+interface gi1/0
  description UBUNTU-SERVER-VLAN60
  switchport mode access
  switchport access vlan 60
@@ -199,7 +204,7 @@ exit
 ### 4.3 Mengatur Trunk
 
 ```cisco
-interface gi1/0
+interface gi0/1
  description TRUNK-TO-CISCO-ROUTER
  switchport trunk encapsulation dot1q
  switchport mode trunk
@@ -207,7 +212,7 @@ interface gi1/0
  no shutdown
 exit
 
-interface gi1/1
+interface gi0/0
  description TRUNK-TO-MIKROTIK-JAKARTA
  switchport trunk encapsulation dot1q
  switchport mode trunk
@@ -226,9 +231,14 @@ show vlan brief
 show interfaces trunk
 ```
 
-> **Bukti 02:** Screenshot output `show vlan brief`.
->
-> **Bukti 03:** Screenshot output `show interfaces trunk`.
+![Show VLAN brief Switch Jakarta](ss/1/show%20vlan%20brief.png)
+
+*VLAN 10 aktif pada Gi0/3, VLAN 20 aktif pada Gi0/2, dan VLAN 60 aktif
+pada Gi1/0.*
+
+![Show interfaces trunk Switch Jakarta](ss/1/show%20interfaces%20trunk.png)
+
+*Gi0/0 dan Gi0/1 berstatus trunking serta membawa VLAN 10, 20, dan 60.*
 
 Hasil yang diharapkan adalah VLAN 10, 20, dan 60 berstatus aktif, serta kedua
 link router berstatus trunk dan membawa ketiga VLAN tersebut.
@@ -257,7 +267,7 @@ interface gi0/1.10
  ip address 192.168.10.2 255.255.255.0
  ip helper-address 192.168.60.10
  vrrp 10 ip 192.168.10.1
- vrrp 10 priority 120
+ vrrp 10 priority 110
  vrrp 10 preempt
 exit
 
@@ -266,7 +276,7 @@ interface gi0/1.20
  ip address 192.168.20.2 255.255.255.0
  ip helper-address 192.168.60.10
  vrrp 20 ip 192.168.20.1
- vrrp 20 priority 90
+ vrrp 20 priority 100
  vrrp 20 preempt
 exit
 
@@ -274,14 +284,14 @@ interface gi0/1.60
  encapsulation dot1Q 60
  ip address 192.168.60.2 255.255.255.0
  vrrp 60 ip 192.168.60.1
- vrrp 60 priority 120
+ vrrp 60 priority 110
  vrrp 60 preempt
 exit
 ```
 
-Priority Cisco dibuat lebih tinggi pada VLAN 10 dan VLAN 60 sehingga Cisco
-menjadi master. Pada VLAN 20, priority Cisco dibuat lebih rendah karena
-MikroTik Jakarta bertindak sebagai master.
+Priority Cisco dibuat 110 pada VLAN 10 dan VLAN 60. VLAN 20 menggunakan
+priority 100, sedangkan MikroTik dikonfigurasi dengan priority 120 pada VLAN
+tersebut. Dengan rancangan ini, MikroTik seharusnya menjadi master VLAN 20.
 
 ### 5.2 Link ke FortiGate
 
@@ -308,13 +318,24 @@ show running-config interface gi0/1.60
 ping 10.10.100.1
 ```
 
-> **Bukti 04:** Screenshot `show ip interface brief`.
->
-> **Bukti 05:** Screenshot `show vrrp brief`.
->
-> **Bukti 06:** Screenshot konfigurasi subinterface.
->
-> **Bukti 07:** Screenshot ping Cisco ke FortiGate Jakarta.
+![IP interface brief Cisco Jakarta](ss/2/interface%20brief.png)
+
+*Gi0/0 dan seluruh subinterface VLAN pada Gi0/1 berstatus up/up.*
+
+![VRRP brief Cisco Jakarta](ss/2/vrrp%20brief.png)
+
+*Saat screenshot diambil, Cisco masih menampilkan status Master pada VLAN 10,
+20, dan 60. Kondisi VLAN 20 ini dibahas pada bagian analisis karena berbeda
+dengan pembagian master yang direncanakan.*
+
+![Running configuration subinterface Cisco](ss/2/show%20running.png)
+
+*Subinterface VLAN 10 dan VLAN 20 telah memiliki encapsulation 802.1Q,
+IP fisik, DHCP relay, dan virtual IP VRRP.*
+
+![Ping Cisco ke FortiGate Jakarta](ss/2/ping%2010.10.100.1.png)
+
+*Ping Cisco Jakarta ke FortiGate `10.10.100.1` berhasil 5/5.*
 
 ---
 
@@ -381,15 +402,25 @@ add dst-address=0.0.0.0/0 gateway=10.10.101.1
 /ping 10.10.101.1 count=5
 ```
 
-> **Bukti 08:** Screenshot `/ip address print`.
->
-> **Bukti 09:** Screenshot `/interface vrrp print`.
->
-> **Bukti 10:** Screenshot `/ip dhcp-relay print`.
->
-> **Bukti 11:** Screenshot `/ip route print`.
->
-> **Bukti 12:** Screenshot ping MikroTik ke FortiGate Jakarta.
+![IP address MikroTik Jakarta](ss/3/ip%20address%20print.png)
+
+*IP fisik VLAN, link FortiGate, dan virtual IP /32 telah terpasang.*
+
+![VRRP MikroTik Jakarta](ss/3/interface%20vrrp%20print.png)
+
+*VRRP VLAN 10, 20, dan 60 aktif; VLAN 20 memiliki priority 120.*
+
+![DHCP relay MikroTik Jakarta](ss/3/ip%20dhcp%20relay.png)
+
+*Relay VLAN 10 dan VLAN 20 mengarah ke Ubuntu Server `192.168.60.10`.*
+
+![Routing table MikroTik Jakarta](ss/3/ip%20route%20print.png)
+
+*Default route MikroTik Jakarta mengarah ke FortiGate `10.10.101.1`.*
+
+![Ping MikroTik ke FortiGate Jakarta](ss/3/ping%20%2010.10.101.1.png)
+
+*Ping ke FortiGate Jakarta berhasil dengan packet loss 0%.*
 
 ---
 
@@ -494,15 +525,25 @@ sudo cat /etc/dhcp/dhcpd.conf
 ping -c 4 8.8.8.8
 ```
 
-> **Bukti 13:** Screenshot `ip a`.
->
-> **Bukti 14:** Screenshot `ip route`.
->
-> **Bukti 15:** Screenshot `/etc/dhcp/dhcpd.conf`.
->
-> **Bukti 16:** Screenshot status ISC-DHCP Server dan Nginx.
->
-> **Bukti 17:** Screenshot ping Ubuntu ke `8.8.8.8`.
+![IP Ubuntu Server Jakarta](ss/4/ip%20a.png)
+
+*Ubuntu Server menggunakan `192.168.60.10/24` pada eth0.*
+
+![Route Ubuntu Server Jakarta](ss/4/ip%20route.png)
+
+*Default route Ubuntu mengarah ke virtual gateway `192.168.60.1`.*
+
+![Konfigurasi DHCP Ubuntu](ss/4/dhcpd.conf.png)
+
+*ISC-DHCP menyediakan pool VLAN 10 dan VLAN 20 dengan gateway virtual VRRP.*
+
+![Status ISC DHCP Server](ss/4/status%20isc-dhcp-server.png)
+
+*Service ISC-DHCP berstatus active (running). Log juga menunjukkan lease
+`192.168.10.100` dan `192.168.20.100` berhasil diberikan melalui relay.*
+
+> **Bukti yang belum tersedia:** Folder `ss/4` belum memuat screenshot status
+> Nginx maupun ping Ubuntu Server ke `8.8.8.8`.
 
 ---
 
@@ -549,56 +590,27 @@ config router static
     next
     edit 3
         set dst 192.168.20.0 255.255.255.0
-        set gateway 10.10.101.2
-        set device "port2"
+        set gateway 10.10.100.2
+        set device "port1"
     next
     edit 4
         set dst 192.168.60.0 255.255.255.0
         set gateway 10.10.100.2
         set device "port1"
     next
-    edit 5
-        set dst 192.168.10.0 255.255.255.0
-        set gateway 10.10.101.2
-        set device "port2"
-        set distance 20
-    next
-    edit 6
-        set dst 192.168.20.0 255.255.255.0
-        set gateway 10.10.100.2
-        set device "port1"
-        set distance 20
-    next
-    edit 7
-        set dst 192.168.60.0 255.255.255.0
-        set gateway 10.10.101.2
-        set device "port2"
-        set distance 20
-    next
 end
 ```
 
-Route dengan distance 20 menjadi jalur cadangan. Route tersebut digunakan saat
-router utama untuk VLAN terkait tidak dapat dijangkau.
+Routing table pada bukti menunjukkan network VLAN 10, VLAN 20, dan VLAN 60
+diarahkan ke Cisco Jakarta melalui `10.10.100.2`.
 
 ### 8.3 Firewall Policy dan NAT
 
 ```fortios
 config firewall policy
     edit 1
-        set name "CISCO-JKT-TO-INTERNET"
-        set srcintf "port1"
-        set dstintf "port3"
-        set srcaddr "all"
-        set dstaddr "all"
-        set action accept
-        set schedule "always"
-        set service "ALL"
-        set nat enable
-    next
-    edit 2
-        set name "MIKROTIK-JKT-TO-INTERNET"
-        set srcintf "port2"
+        set name "LAN-to Internet"
+        set srcintf "port1" "port2"
         set dstintf "port3"
         set srcaddr "all"
         set dstaddr "all"
@@ -620,13 +632,36 @@ execute ping 10.0.12.1
 execute ping 8.8.8.8
 ```
 
-> **Bukti 18:** Screenshot `get system interface physical`.
->
-> **Bukti 19:** Screenshot routing table FortiGate Jakarta.
->
-> **Bukti 20:** Screenshot firewall policy Jakarta.
->
-> **Bukti 21:** Screenshot ping FortiGate Jakarta ke `8.8.8.8`.
+![Interface FortiGate Jakarta](ss/5/system%20interface%20physical.png)
+
+*Port1, port2, dan port3 berstatus up dengan IP sesuai tabel addressing.*
+
+![Routing table FortiGate Jakarta](ss/5/info%20routing-table.png)
+
+*Default route mengarah ke ISP, route Jakarta mengarah ke Cisco, dan route
+Surabaya diterima sebagai OSPF external type 2 melalui GRE.*
+
+![Firewall policy FortiGate Jakarta](ss/5/show%20firewall%20policy.png)
+
+*Policy `LAN-to Internet` menerima traffic dari port1 dan port2 menuju port3
+dengan NAT aktif.*
+
+![Ping internet FortiGate Jakarta](ss/5/ping%208.8.8.8.png)
+
+*FortiGate Jakarta berhasil ping `8.8.8.8` dengan packet loss 0%.*
+
+![Ping tunnel dari FortiGate Jakarta](ss/5/ping%20172.16.0.2.png)
+
+*IP tunnel Surabaya `172.16.0.2` dapat dijangkau dari Jakarta.*
+
+![OSPF neighbor FortiGate Jakarta](ss/5/info%20ospf%20neighbor.png)
+
+*Neighbor OSPF `2.2.2.2` berstatus Full melalui GRE-JKT-SBY.*
+
+![Route OSPF FortiGate Jakarta](ss/5/routing-table%20ospf.png)
+
+*Network Surabaya `192.168.30.0/24` dan `192.168.40.0/24` muncul sebagai
+route OSPF E2.*
 
 ---
 
@@ -666,15 +701,29 @@ Default route umumnya diperoleh secara dinamis dari DHCP Client pada `ether1`.
 /ping 10.0.13.2 count=5
 ```
 
-> **Bukti 22:** Screenshot `/ip address print`.
->
-> **Bukti 23:** Screenshot `/ip route print`.
->
-> **Bukti 24:** Screenshot `/ip firewall nat print`.
->
-> **Bukti 25:** Screenshot ping ISP ke `8.8.8.8`.
->
-> **Bukti 26:** Screenshot pengujian WAN kedua FortiGate.
+![IP address MikroTik ISP](ss/6/Screenshot%202026-06-14%20190047.png)
+
+*Ether2 menggunakan `10.0.12.1/30`, ether3 menggunakan `10.0.13.1/30`, dan
+ether1 memperoleh IP DHCP `192.168.30.34/24` dari Cloud NAT saat pengujian.*
+
+![Route MikroTik ISP](ss/6/Screenshot%202026-06-14%20190057.png)
+
+*Default route dinamis diperoleh melalui gateway `192.168.30.1`.*
+
+![NAT MikroTik ISP](ss/6/Screenshot%202026-06-14%20190106.png)
+
+*Rule masquerade aktif pada traffic keluar ether1.*
+
+![Ping internet MikroTik ISP](ss/6/Screenshot%202026-06-14%20190113.png)
+
+*MikroTik ISP berhasil ping `8.8.8.8` dengan packet loss 0%.*
+
+![Ping ISP ke FortiGate Jakarta](ss/6/Screenshot%202026-06-14%20190120.png)
+
+*MikroTik ISP berhasil ping WAN FortiGate Jakarta `10.0.12.2`.*
+
+> **Bukti yang belum tersedia:** Tidak terdapat screenshot ping MikroTik ISP
+> ke WAN FortiGate Surabaya `10.0.13.2`.
 
 ---
 
@@ -743,10 +792,10 @@ add address=192.168.40.1/24 interface=vlan40-operations
 add address=10.10.200.2/30 interface=ether1
 
 /ip pool
-add name=pool-vlan30 ranges=192.168.30.100-192.168.30.200
+add name=dhcp_pool0 ranges=192.168.30.2-192.168.30.254
 
 /ip dhcp-server
-add name=dhcp-vlan30 interface=vlan30-sales address-pool=pool-vlan30 disabled=no
+add name=dhcp1 interface=vlan30-sales address-pool=dhcp_pool0 lease-time=10m disabled=no
 
 /ip dhcp-server network
 add address=192.168.30.0/24 gateway=192.168.30.1 dns-server=8.8.8.8
@@ -785,19 +834,36 @@ show ip
 ping 192.168.40.1
 ```
 
-> **Bukti 27:** Screenshot `show vlan brief` Switch Surabaya.
->
-> **Bukti 28:** Screenshot `show interfaces trunk` Switch Surabaya.
->
-> **Bukti 29:** Screenshot `/ip address print` MikroTik Surabaya.
->
-> **Bukti 30:** Screenshot DHCP Server dan pool VLAN 30.
->
-> **Bukti 31:** Screenshot route MikroTik Surabaya.
->
-> **Bukti 32:** Screenshot client VLAN 30 memperoleh IP DHCP.
->
-> **Bukti 33:** Screenshot client VLAN 40 menggunakan IP static.
+![VLAN brief Switch Surabaya](ss/7/Screenshot%202026-06-14%20235451.png)
+
+*VLAN 30 aktif pada Gi0/1 dan VLAN 40 aktif pada Gi0/2 serta Gi0/3.*
+
+![Trunk Switch Surabaya](ss/7/Screenshot%202026-06-14%20235515.png)
+
+*Gi0/0 berstatus trunking dan membawa VLAN 30 serta VLAN 40.*
+
+![IP MikroTik Surabaya](ss/7/Screenshot%202026-06-14%20235553.png)
+
+*Gateway VLAN 30, VLAN 40, dan link FortiGate telah terpasang.*
+
+![Pool DHCP MikroTik Surabaya](ss/7/Screenshot%202026-06-14%20235701.png)
+
+*Pool aktual bernama `dhcp_pool0` dengan range `192.168.30.2-192.168.30.254`.*
+
+![DHCP Server MikroTik Surabaya](ss/7/Screenshot%202026-06-14%20235708.png)
+
+*DHCP Server `dhcp1` aktif pada vlan30-sales dengan lease time 10 menit.*
+
+![Route MikroTik Surabaya](ss/7/Screenshot%202026-06-14%20235746.png)
+
+*Default route mengarah ke FortiGate Surabaya `10.10.200.1`.*
+
+![DHCP dan internet VLAN 30](ss/7/Screenshot%202026-06-14%20235930.png)
+
+*Client VLAN 30 memperoleh `192.168.30.254/24` dan berhasil ping internet.*
+
+> **Bukti yang belum tersedia:** Tidak terdapat screenshot konfigurasi IP
+> static client VLAN 40 pada folder `ss/7`.
 
 ---
 
@@ -847,7 +913,7 @@ end
 ```fortios
 config firewall policy
     edit 1
-        set name "SURABAYA-TO-INTERNET"
+        set name "SBY-to-Internet"
         set srcintf "port2"
         set dstintf "port1"
         set srcaddr "all"
@@ -870,13 +936,34 @@ execute ping 10.0.13.1
 execute ping 8.8.8.8
 ```
 
-> **Bukti 34:** Screenshot interface FortiGate Surabaya.
->
-> **Bukti 35:** Screenshot routing table FortiGate Surabaya.
->
-> **Bukti 36:** Screenshot firewall policy Surabaya.
->
-> **Bukti 37:** Screenshot ping FortiGate Surabaya ke `8.8.8.8`.
+![Interface FortiGate Surabaya](ss/8/Screenshot%202026-06-15%20000122.png)
+
+*Port1 `10.0.13.2/30` dan port2 `10.10.200.1/30` berstatus up.*
+
+![Firewall policy FortiGate Surabaya](ss/8/Screenshot%202026-06-15%20000141.png)
+
+*Policy `SBY-to-Internet` meneruskan traffic port2 ke port1 dengan NAT.*
+
+![Ping internet FortiGate Surabaya](ss/8/Screenshot%202026-06-15%20000208.png)
+
+*FortiGate Surabaya berhasil ping `8.8.8.8` dengan packet loss 0%.*
+
+![Ping tunnel FortiGate Surabaya](ss/8/Screenshot%202026-06-15%20000234.png)
+
+*FortiGate Surabaya berhasil ping tunnel Jakarta `172.16.0.1`.*
+
+![Route OSPF FortiGate Surabaya](ss/8/Screenshot%202026-06-15%20000408.png)
+
+*Network Jakarta muncul sebagai route OSPF E2 melalui GRE-SBY-JKT.*
+
+![OSPF neighbor FortiGate Surabaya](ss/8/Screenshot%202026-06-15%20000415.png)
+
+*Neighbor `1.1.1.1` berstatus Full.*
+
+![Routing table lengkap FortiGate Surabaya](ss/8/Screenshot%202026-06-15%20000423.png)
+
+*Routing table memuat default route, connected route, static route Surabaya,
+dan route OSPF menuju network Jakarta.*
 
 ---
 
@@ -1038,15 +1125,44 @@ get router info ospf neighbor
 get router info routing-table ospf
 ```
 
-> **Bukti 38:** Screenshot ping WAN antar-FortiGate.
->
-> **Bukti 39:** Screenshot ping antar-IP GRE.
->
-> **Bukti 40:** Screenshot OSPF neighbor berstatus `Full`.
->
-> **Bukti 41:** Screenshot route OSPF pada FortiGate Jakarta.
->
-> **Bukti 42:** Screenshot route OSPF pada FortiGate Surabaya.
+#### Pengujian WAN
+
+![Ping WAN Jakarta ke Surabaya](ss/9/Screenshot%202026-06-15%20170730.png)
+
+*FortiGate Jakarta berhasil ping WAN Surabaya `10.0.13.2`.*
+
+![Ping WAN Surabaya ke Jakarta](ss/9/Screenshot%202026-06-15%20170928.png)
+
+*FortiGate Surabaya berhasil ping WAN Jakarta `10.0.12.2`.*
+
+#### Pengujian GRE Tunnel
+
+![Ping GRE dari Surabaya](ss/9/Screenshot%202026-06-15%20171002.png)
+
+*Surabaya dapat menjangkau tunnel Jakarta `172.16.0.1` dengan packet loss 0%.*
+
+![Ping GRE dari Jakarta](ss/9/Screenshot%202026-06-15%20171037.png)
+
+*Jakarta dapat menjangkau tunnel Surabaya `172.16.0.2` dengan packet loss 0%.*
+
+#### Verifikasi OSPF
+
+![Neighbor OSPF Surabaya](ss/9/Screenshot%202026-06-15%20171110.png)
+
+*FortiGate Surabaya bertetangga dengan router-id `1.1.1.1` dalam state Full.*
+
+![Neighbor OSPF Jakarta](ss/9/Screenshot%202026-06-15%20171132.png)
+
+*FortiGate Jakarta bertetangga dengan router-id `2.2.2.2` dalam state Full.*
+
+![Route OSPF Jakarta](ss/9/Screenshot%202026-06-15%20171159.png)
+
+*Jakarta menerima network VLAN 30 dan VLAN 40 melalui `172.16.0.2`.*
+
+![Route OSPF Surabaya](ss/9/Screenshot%202026-06-15%20171232.png)
+
+*Surabaya menerima network VLAN 10, VLAN 20, dan VLAN 60 melalui
+`172.16.0.1`.*
 
 ---
 
@@ -1072,14 +1188,25 @@ Hasil yang diharapkan:
 
 - VLAN 10 memperoleh alamat `192.168.10.100-192.168.10.200`.
 - VLAN 20 memperoleh alamat `192.168.20.100-192.168.20.200`.
-- VLAN 30 memperoleh alamat `192.168.30.100-192.168.30.200`.
+- VLAN 30 memperoleh alamat dari pool aktual `192.168.30.2-192.168.30.254`.
 - Gateway yang diperoleh sesuai tabel addressing.
 
-> **Bukti 43:** Screenshot IP DHCP client VLAN 10 Jakarta.
->
-> **Bukti 44:** Screenshot IP DHCP client VLAN 20 Jakarta.
->
-> **Bukti 45:** Screenshot IP DHCP client VLAN 30 Surabaya.
+Log ISC-DHCP pada bagian Ubuntu menunjukkan client VLAN 10 memperoleh
+`192.168.10.100`. Screenshot client berikut memperlihatkan hasil DHCP VLAN 20
+dan VLAN 30.
+
+![DHCP client VLAN 20 Jakarta](ss/10/Screenshot%202026-06-15%20171519.png)
+
+*Walaupun prompt terminal pada gambar tertulis `VLAN10`, alamat
+`192.168.20.102/24` dan gateway `192.168.20.1` membuktikan bahwa client ini
+berada pada VLAN 20.*
+
+![DHCP client VLAN 30 Surabaya](ss/10/Screenshot%202026-06-15%20171441.png)
+
+*Client VLAN 30 memperoleh `192.168.30.200/24` dari MikroTik Surabaya.*
+
+> **Bukti yang belum tersedia:** Belum ada screenshot `show ip` dari client
+> VLAN 10 Jakarta. Alokasi `192.168.10.100` hanya terlihat pada log DHCP Server.
 
 ### 13.2 Pengujian Internet
 
@@ -1090,16 +1217,19 @@ ping 8.8.8.8
 Perintah dilakukan dari client Jakarta dan Surabaya. Reply menunjukkan default
 route, firewall policy, dan NAT telah bekerja.
 
-> **Bukti 46:** Screenshot ping internet dari client Jakarta.
->
-> **Bukti 47:** Screenshot ping internet dari client Surabaya.
+![Ping internet client Surabaya](ss/7/Screenshot%202026-06-14%20235930.png)
+
+*Client VLAN 30 Surabaya berhasil ping `8.8.8.8`.*
+
+> **Bukti yang belum tersedia:** Belum ada screenshot ping internet dari client
+> Jakarta pada folder `ss`.
 
 ### 13.3 Pengujian Antar-Site
 
-Dari client Jakarta:
+Dari client Jakarta menuju client VLAN 30 Surabaya:
 
 ```text
-ping 192.168.40.10
+ping 192.168.30.200
 ```
 
 Dari client Surabaya, gunakan alamat DHCP aktual client Jakarta:
@@ -1111,9 +1241,14 @@ ping 192.168.10.x
 Reply menunjukkan GRE tunnel, OSPF, static route internal, dan policy
 antar-site telah bekerja.
 
-> **Bukti 48:** Screenshot ping Jakarta ke Surabaya.
->
-> **Bukti 49:** Screenshot ping Surabaya ke Jakarta.
+![Ping Jakarta ke Surabaya](ss/10/Screenshot%202026-06-15%20171613.png)
+
+*Client Jakarta berhasil ping client VLAN 30 Surabaya `192.168.30.200`.*
+
+![Ping Surabaya ke Jakarta](ss/10/Screenshot%202026-06-15%20171734.png)
+
+*Client VLAN 30 Surabaya berhasil ping client VLAN 10 Jakarta
+`192.168.10.100`.*
 
 ### 13.4 Pengujian Web Server Jakarta
 
@@ -1125,7 +1260,10 @@ http://192.168.60.10
 
 Halaman harus menampilkan identitas web server Jakarta.
 
-> **Bukti 50:** Screenshot akses Nginx Jakarta dari Surabaya.
+![Akses web server Jakarta dari Surabaya](ss/10/Screenshot%202026-06-15%20163813.png)
+
+*Web server `192.168.60.10` berhasil diakses dan menampilkan identitas
+Kelompok 14 Modul 5.*
 
 ### 13.5 Pengujian Failover VRRP
 
@@ -1135,30 +1273,30 @@ Halaman harus menampilkan identitas web server Jakarta.
 4. Ulangi ping dari client.
 5. Nyalakan kembali Cisco dan amati proses preemption.
 
-Pada kondisi normal, Cisco menjadi master VLAN 10 dan 60, sedangkan MikroTik
-menjadi master VLAN 20. Ketika master gagal, router backup mengambil alih
-virtual IP sehingga gateway client tidak perlu diubah.
+Menurut rancangan priority, Cisco seharusnya menjadi master VLAN 10 dan VLAN
+60, sedangkan MikroTik menjadi master VLAN 20. Ketika master gagal, router
+backup seharusnya mengambil alih virtual IP sehingga gateway client tidak perlu
+diubah.
 
-> **Bukti 51:** Screenshot status VRRP sebelum failover.
->
-> **Bukti 52:** Screenshot status VRRP setelah master dimatikan.
->
-> **Bukti 53:** Screenshot ping tetap berjalan atau pulih setelah failover.
+> **Bukti yang belum tersedia:** Folder `ss` belum memuat rangkaian screenshot
+> sebelum failover, sesudah master dimatikan, dan ping selama proses failover.
+> Karena itu, keberhasilan failover belum dapat dinyatakan berdasarkan bukti
+> yang tersedia.
 
 ### 13.6 Ringkasan Pengujian
 
 | No. | Pengujian | Hasil | Keterangan |
 | ---: | ---------- | ----- | ---------- |
-| 1 | DHCP VLAN 10 Jakarta | Isi setelah praktikum | DHCP dari Ubuntu |
-| 2 | DHCP VLAN 20 Jakarta | Isi setelah praktikum | DHCP dari Ubuntu |
-| 3 | DHCP VLAN 30 Surabaya | Isi setelah praktikum | DHCP dari MikroTik |
-| 4 | Internet client Jakarta | Isi setelah praktikum | NAT FortiGate Jakarta |
-| 5 | Internet client Surabaya | Isi setelah praktikum | NAT FortiGate Surabaya |
-| 6 | GRE Jakarta-Surabaya | Isi setelah praktikum | Ping tunnel |
-| 7 | OSPF neighbor | Isi setelah praktikum | Harus `Full` |
-| 8 | Ping antarlokasi | Isi setelah praktikum | Route OSPF |
-| 9 | Akses web Jakarta dari Surabaya | Isi setelah praktikum | HTTP ke Ubuntu |
-| 10 | Failover VRRP | Isi setelah praktikum | Backup mengambil alih |
+| 1 | DHCP VLAN 10 Jakarta | Berhasil | Lease `192.168.10.100` tercatat di log Ubuntu |
+| 2 | DHCP VLAN 20 Jakarta | Berhasil | Client mendapat `192.168.20.102` |
+| 3 | DHCP VLAN 30 Surabaya | Berhasil | Client mendapat `192.168.30.200` dan `.254` pada dua pengujian |
+| 4 | Internet client Jakarta | Belum ada bukti client | FortiGate Jakarta sendiri berhasil ke internet |
+| 5 | Internet client Surabaya | Berhasil | Ping `8.8.8.8` dari VLAN 30 berhasil |
+| 6 | GRE Jakarta-Surabaya | Berhasil | Ping tunnel dua arah, packet loss 0% |
+| 7 | OSPF neighbor | Berhasil | Neighbor kedua FortiGate berstatus `Full` |
+| 8 | Ping antarlokasi | Berhasil | Ping Jakarta-Surabaya berhasil dua arah |
+| 9 | Akses web Jakarta dari Surabaya | Berhasil | Halaman Nginx `192.168.60.10` tampil |
+| 10 | Failover VRRP | Belum ada bukti | Screenshot failover belum tersedia |
 
 ---
 
@@ -1213,12 +1351,18 @@ FortiGate Surabaya menuju jaringan internal cabang.
 ### 14.4 Peran VRRP
 
 VRRP menyediakan virtual gateway yang tetap bagi client meskipun perangkat
-router aktif berubah. Pembagian master antarsubnet juga membuat traffic normal
-tidak hanya melewati satu router:
+router aktif berubah. Rancangan pembagian master adalah:
 
 - Cisco menjadi master VLAN 10 dan VLAN 60.
 - MikroTik menjadi master VLAN 20.
 - Jika master gagal, backup mengambil alih virtual IP.
+
+Namun, screenshot `show vrrp brief` pada Cisco menampilkan Cisco sebagai Master
+untuk ketiga VLAN, sedangkan screenshot MikroTik juga memperlihatkan flag
+Master pada interface VRRP. Kedua bukti kemungkinan diambil pada waktu yang
+berbeda atau adjacency VRRP lintas vendor belum stabil saat pengambilan gambar.
+Karena screenshot failover belum tersedia, fungsi redundansi ini belum dapat
+diverifikasi secara menyeluruh.
 
 ### 14.5 Peran GRE dan OSPF
 
@@ -1237,7 +1381,7 @@ DHCP, firewall, NAT, tunnel, dan dynamic routing dalam satu topologi enterprise.
 Jika seluruh pengujian berhasil, maka:
 
 1. Client memperoleh konfigurasi IP sesuai VLAN masing-masing.
-2. Gateway Jakarta tetap tersedia melalui VRRP.
+2. VRRP telah dikonfigurasi, tetapi failover belum memiliki bukti pengujian.
 3. Client Jakarta dan Surabaya dapat mengakses internet.
 4. GRE tunnel Jakarta-Surabaya aktif.
 5. OSPF neighbor antarkedua FortiGate berstatus `Full`.
